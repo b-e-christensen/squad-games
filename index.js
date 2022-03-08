@@ -1,24 +1,12 @@
-// PSEUDO TIME //
-// Data flow ~~ 
-/* 
-1. node command to initiate app 
-2. Prompt user function to run through questions on info for employee. (input example of inquirer)
-3. Ask user if they want to create info for another employee. 
-4. If no -- process.exit()
-4a. If yes, run the prompts for that specific employee.  
-5. Repeat steps 3 - 4a until user exits. 
-6. Generate HTML. 
-*/
 
 const inquirer = require('inquirer');
-const fs = require('fs');
 const Employee = require('./lib/Employee')
 const Engineer = require('./lib/Engineer')
 const Intern = require('./lib/Intern')
 const Manager = require('./lib/Manager')
-let engineerNum = 1
+const script = require('./script')
 
-//everyone has id name and email
+//All employees have id name and email
 generalQuestions = () => {
     return inquirer.prompt([
         {
@@ -38,7 +26,8 @@ generalQuestions = () => {
         },
     ])
 }
-//manager question: office number
+
+// Questions that only pertain to managers
 managerQuestions = () => {
     return inquirer.prompt([
         {
@@ -48,17 +37,19 @@ managerQuestions = () => {
         }
     ])
 }
-// engineer question : github
+
+// Questions that only pertain to engineers
 engineerQuestions = () => {
     return inquirer.prompt([
         {
             type: 'input',
             name: 'github',
-            message: 'What is their GitHub?'
+            message: 'What is their GitHub username?'
         }
     ])
 }
-//intern question: school
+
+// Questions that only pertain to interns
 internQuestions = () => {
     return inquirer.prompt([
         {
@@ -69,6 +60,7 @@ internQuestions = () => {
     ])
 }
 
+// Function to see if user wants to keep adding employees.
 addEmployee = () => {
     return inquirer.prompt([
         {
@@ -80,30 +72,18 @@ addEmployee = () => {
     ])
 }
 
+// Takes value of addEmployee and checks what type was chosen to then run those specific questions. Ends the app if user does not want to add anymore.
 employeeType = (answers) => {
     if(answers.newEmployee === 'Engineer'){
         addEngineer()
     } else if (answers.newEmployee === 'Intern'){
         addIntern()
     } else {
-        process.exit()
+        script.writeHTML()
     }
 }
 
-function init() {
-    let manager = new Manager
-    generalQuestions()
-        .then((answers) => {
-            manager.id = answers.id;
-            manager.name = answers.name;
-            manager.email = answers.email
-        })
-        .then(() => managerQuestions())
-        .then((answers) => manager.officeNumber = answers.officeNumber)
-        .then(() => addEmployee())
-        .then((answers) => employeeType(answers))
-}
-
+// Runs questions for engineer. Saves the info and pushes it to an array to use in html generation
 function addEngineer() {
     let engineer = new Engineer
     generalQuestions()
@@ -115,9 +95,13 @@ function addEngineer() {
         .then(() => engineerQuestions())
         .then((answers) => engineer.github = answers.github)
         .then(() => addEmployee())
-        .then((answers) => employeeType(answers))
+        .then((answers) => {
+            script.employeeCard(engineer)
+            employeeType(answers)
+        })
   }
 
+  // Runs questions for intern. Saves the info and pushes it to an array to use in html generation
   function addIntern() {
     let intern = new Intern
     generalQuestions()
@@ -129,18 +113,28 @@ function addEngineer() {
         .then(() => internQuestions())
         .then((answers) => intern.school = answers.school)
         .then(() => addEmployee())
-        .then((answers) => employeeType(answers))
+        .then((answers) => {
+            script.employeeCard(intern)
+            employeeType(answers)
+        })
   }
 
-
-
-
-
-
-
-
-
-
-
+// Starts the app.
+function init() {
+    let manager = new Manager
+    generalQuestions()
+        .then((answers) => {
+            manager.id = answers.id;
+            manager.name = answers.name;
+            manager.email = answers.email
+        })
+        .then(() => managerQuestions())
+        .then((answers) => manager.officeNumber = answers.officeNumber)
+        .then(() => addEmployee())
+        .then((answers) => {
+            script.employeeCard(manager)
+            employeeType(answers)
+        })
+}
 
 init()
