@@ -5,7 +5,7 @@ describe("Engineer", () => {
         it("should return github value", () => {
             let engineer = new Engineer;
             engineer.github = 'Big Guy'
-            expect(engineer.gi).toEqual(engineer.getName())
+            expect(engineer.github).toEqual(engineer.getGithub())
         })
     })
 
